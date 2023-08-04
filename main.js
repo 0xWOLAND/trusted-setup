@@ -1,80 +1,54 @@
-const dstWidth = 3;
-const dstHeight = 2;
+const vertexShaderSource = `#version 300 es
 
-const canvas = document.createElement("canvas");
-canvas.width = dstWidth;
-canvas.height = dstHeight;
+uniform float uPointSize;
+uniform vec2 uPosition;
 
-const vs = `#version 300 es
-in vec4 position;
 void main() {
-  gl_Position = position;
+    gl_Position = vec4(uPosition, 0.0, 1.0);
+    gl_PointSize = uPointSize;
 }
 `;
 
-const fs = `#version 300 es
-precision highp float;
- 
-uniform sampler2D srcTex;
- 
-out vec4 outColor;
- 
-void main() {
-  ivec2 texelCoord = ivec2(gl_FragCoord.xy);
-  vec4 value = texelFetch(srcTex, texelCoord, 0);  // 0 = mip level 0
-  outColor = value * 2.0;
-}
-`;
+const fragmentShaderSource = `#version 300 es
+precision mediump float; 
 
+uniform int uIndex;
+uniform vec4 uColors[3];
+
+out vec4 fragColor;
+
+void main() {
+    fragColor = uColors[uIndex];
+}`;
+
+const canvas = document.querySelector("canvas");
 const gl = canvas.getContext("webgl2");
 
-const program = webglUtils.createProgramFromSources(gl, [vs, fs]);
-const positionLoc = gl.getAttribLocation(program, "position");
-const srcTexLoc = gl.getUniformLocation(program, "srcTex");
+const program = gl.createProgram();
 
-const buffer = gl.createBuffer();
-gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-gl.bufferData(
-  gl.ARRAY_BUFFER,
-  new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
-  gl.STATIC_DRAW
-);
+const vertexShader = gl.createShader(gl.VERTEX_SHADER);
+gl.shaderSource(vertexShader, vertexShaderSource);
+gl.compileShader(vertexShader);
+gl.attachShader(program, vertexShader);
 
-const vao = gl.createVertexArray();
-gl.bindVertexArray(vao);
+const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+gl.shaderSource(fragmentShader, fragmentShaderSource);
+gl.compileShader(fragmentShader);
+gl.attachShader(program, fragmentShader);
 
-gl.enableVertexAttribArray(positionLoc);
-gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
-
-const srcWidth = 3;
-const srcHeight = 2;
-const tex = gl.createTexture();
-gl.bindTexture(gl.TEXTURE_2D, tex);
-gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
-gl.texImage2D(
-  gl.TEXTURE_2D,
-  0,
-  gl.R8,
-  srcWidth,
-  srcHeight,
-  0,
-  gl.RED,
-  gl.UNSIGNED_BYTE,
-  new Uint8Array([1, 2, 3, 4, 5, 6])
-);
-
-gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+gl.linkProgram(program);
 
 gl.useProgram(program);
-gl.uniform1i(srcTexLoc, 0);
-gl.drawArrays(gl.TRIANGLES, 0, 6);
 
-const results = new Uint8Array(dstWidth * dstHeight * 4);
-gl.readPixels(0, 0, dstWidth, dstHeight, gl.RGBA, gl.UNSIGNED_BYTE, results);
+const uPositionLoc = gl.getUniformLocation(program, "uPosition");
+const uPointSizeLoc = gl.getUniformLocation(program, "uPointSize");
 
-for (let i = 0; i < dstWidth * dstHeight; i++) {
-  console.log(results[i * 4]);
-}
+gl.uniform1f(uPointSizeLoc, 100);
+gl.uniform2f(uPositionLoc, 0, -0.2);
+
+const uIndexLoc = gl.getUniformLocation(program, "uIndex");
+const uColorsLoc = gl.getUniformLocation(program, "uColors");
+gl.uniform1i(uIndexLoc, 2);
+gl.uniform4fv(uColorsLoc, [1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1]);
+
+gl.drawArrays(gl.POINTS, 0, 1);
