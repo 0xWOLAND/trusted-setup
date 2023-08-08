@@ -225,7 +225,6 @@ function render() {
   gl.bindVertexArray(sourceVAO);
 
   gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, destinationTransformFeedback);
-  console.log(particleVBOs[destinationIdx][POSITION_LOCATION]);
   gl.bindBufferBase(
     gl.TRANSFORM_FEEDBACK_BUFFER,
     0,

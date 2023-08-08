@@ -1,6 +1,5 @@
 function createShader(gl, src, type) {
   const shader = gl.createShader(type);
-  console.log(src);
   gl.shaderSource(shader, src);
   gl.compileShader(shader);
   if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
