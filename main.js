@@ -35,8 +35,12 @@ void main()
         v_spawntime = u_time;
         v_lifetime = 5000.0;
     } else {
-        v_velocity = a_velocity + 0.01 * u_acceleration;
-        v_position = a_position + 0.01 * v_velocity;
+        // v_velocity = a_velocity + 0.01 * u_acceleration;
+        // v_position = a_position + 0.01 * v_velocity;
+        // v_spawntime = a_spawntime;
+        // v_lifetime = a_lifetime;
+        v_velocity = a_velocity;
+        v_position = a_position;
         v_spawntime = a_spawntime;
         v_lifetime = a_lifetime;
     }
@@ -82,7 +86,7 @@ canvas.addEventListener(
 
 // -- Declare variables for the particle system
 
-var NUM_PARTICLES = 1000;
+var NUM_PARTICLES = 10;
 var ACCELERATION = -1.0;
 
 var appStartTime = Date.now();
@@ -103,7 +107,9 @@ var drawColorLocation = gl.getUniformLocation(program, "u_color");
 
 // -- Initialize particle data
 
-var particlePositions = new Float32Array(NUM_PARTICLES * 2).fill(1.0);
+var particlePositions = new Float32Array(NUM_PARTICLES * 2)
+  .fill(0)
+  .map((_) => Math.random() - 0.5);
 var particleVelocities = new Float32Array(NUM_PARTICLES * 2);
 var particleSpawntime = new Float32Array(NUM_PARTICLES);
 var particleLifetime = new Float32Array(NUM_PARTICLES);
@@ -231,9 +237,9 @@ function render() {
     particleVBOs[destinationIdx][POSITION_LOCATION]
   );
 
-  // const res = new Float32Array(NUM_PARTICLES * 2);
-  // gl.getBufferSubData(gl.TRANSFORM_FEEDBACK_BUFFER, 0, res);
-  // console.log(res);
+  const positions = new Float32Array(NUM_PARTICLES * 2);
+  gl.getBufferSubData(gl.TRANSFORM_FEEDBACK_BUFFER, 0, positions);
+  solve(positions);
 
   gl.bindBufferBase(
     gl.TRANSFORM_FEEDBACK_BUFFER,
