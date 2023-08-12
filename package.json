@@ -8,5 +8,10 @@
   },
   "type": "module",
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "chai": "^4.3.7",
+    "fft.js": "^4.0.4",
+    "mocha": "^10.2.0"
+  }
 }

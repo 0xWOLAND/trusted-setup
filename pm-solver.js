@@ -1,5 +1,5 @@
-const WIDTH = 500;
-const HEIGHT = 500;
+const WIDTH = N_CELLS;
+const HEIGHT = N_CELLS;
 
 const PARTICLE_MASS = 5.0;
 const PARTICLE_SIZE = 3.0;
