@@ -1,5 +1,5 @@
-import FFT from "fft.js";
 import { N_CELLS, OMEGA_M0 } from "./config.js";
+import { FFT } from "./fft.js";
 
 // f = [0, 1, ...,   n/2-1,     -n/2, ..., -1] / (d*n)   if n is even
 // f = [0, 1, ..., (n-1)/2, -(n-1)/2, ..., -1] / (d*n)   if n is odd
@@ -38,30 +38,34 @@ export function potential(density, fourier_grid, t) {
   return potential_real(ans);
 }
 
-export function density_k(fgrid) {
-  const dim = fgrid.length;
+export function density_k(density) {
+  const dim = density.length;
   console.log(dim);
-  const f = new FFT(dim);
+  const f = new FFT(16);
 
-  return fgrid.map((x) => {
+  const ans = density.map((x) => {
     const out = f.createComplexArray();
     f.realTransform(out, x);
-    return f;
+    return out;
   });
+  return ans;
 }
 
 export function potential_k(t, fourier_grid, density_grid) {
-  return ((-3 * OMEGA_M0) / 8 / t) * fourier_grid * density_grid;
+  return fourier_grid.map((a, i) =>
+    a.map((x, j) => ((-3 * OMEGA_M0) / 8 / t) * x * density_grid[i][j])
+  );
 }
 
 export function potential_real(potential_k) {
   const dim = potential_k.length;
   console.log(dim);
-  const f = new FFT(dim);
+  const f = new FFT(16);
 
-  return potential_k.map((x) => {
+  const ans = potential_k.map((x) => {
     const out = f.createComplexArray();
-    f.inverseTransform(x, out);
-    return f;
+    f.inverseTransform(out, x);
+    return x;
   });
+  return ans;
 }

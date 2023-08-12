@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "http-server"
+    "run": "http-server",
+    "test": "mocha"
   },
   "type": "module",
   "author": "",

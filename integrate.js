@@ -1,16 +1,24 @@
-import { N_CELLS } from "./config";
-import { fourier_grid } from "./fourier";
+import { H0, N_CELLS, OMEGA_K0, OMEGA_LAMBDA0 } from "./config.js";
+import { f } from "./cosmology.js";
+import { potential } from "./fourier.js";
 
-export function init() {
-  const dft_grid = fourier_grid();
+function update(ρ, positions, velocities, fourier_grid, t, dt) {
+  const g = potential(ρ, fourier_grid, t);
+  const f_t = f(t + dt, [H0, OMEGA_LAMBDA0, OMEGA_K0]);
+  return integrate(positions, velocities, g, f_t, t, dt);
 }
 
-export function integrate(positions, velocity, t, dt) {
+// TODO compute in shader
+function integrate(positions, velocities, potential, f_t, t, dt) {
   const centers = positions.map((x) => Math.floor(x));
   const ρ = density_dist(positions, centers);
+
+  return positions.map((_positions, i) =>
+    interpolate(_positions, velocities[i], potential, centers, ρ, f_t, t, dt)
+  );
 }
 
-export function density_dist(positions, centers) {
+function density_dist(positions, centers) {
   const len = positions[0].length;
 
   let ρ = Array.from(Array(4), () => new Array(len).fill(0));
@@ -31,16 +39,7 @@ export function density_dist(positions, centers) {
 }
 
 // TODO compute this in shader
-export function update(
-  centers,
-  positions,
-  velocities,
-  potential,
-  f_t,
-  ρ,
-  t,
-  dt
-) {
+function interpolate(positions, velocities, potential, centers, ρ, f_t, t, dt) {
   // Central Difference Approximation
   const cda_r = [...centers].map((x) => (x + 1) % N_CELLS);
   const cda_l = [...centers].map((x) => x - 1);

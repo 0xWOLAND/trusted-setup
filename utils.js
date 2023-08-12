@@ -1,4 +1,4 @@
-function createShader(gl, src, type) {
+export function createShader(gl, src, type) {
   const shader = gl.createShader(type);
   gl.shaderSource(shader, src);
   gl.compileShader(shader);
@@ -8,7 +8,7 @@ function createShader(gl, src, type) {
   return shader;
 }
 
-function createProgram(
+export function createProgram(
   gl,
   vertexShaderSource,
   fragmentShaderSource,
@@ -47,14 +47,14 @@ function createProgram(
 
   return program;
 }
-function makeBuffer(gl, sizeOrData, usage) {
+export function makeBuffer(gl, sizeOrData, usage) {
   const buf = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, buf);
   gl.bufferData(gl.ARRAY_BUFFER, sizeOrData, usage);
   return buf;
 }
 
-function makeVertexArray(gl, bufLocPairs) {
+export function makeVertexArray(gl, bufLocPairs) {
   const va = gl.createVertexArray();
   gl.bindVertexArray(va);
   for (const [buffer, loc] of bufLocPairs) {
@@ -71,6 +71,6 @@ function makeVertexArray(gl, bufLocPairs) {
   }
   return va;
 }
-function invert(currentIndex) {
+export function invert(currentIndex) {
   return (currentIndex + 1) % 2;
 }

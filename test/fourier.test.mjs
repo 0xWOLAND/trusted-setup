@@ -2,14 +2,6 @@ import { fourier_grid, potential, sample_freq } from "../fourier.js";
 import { N_CELLS } from "../config.js";
 import { expect } from "chai";
 
-// const scale = 2 * Math.PI;
-// const samples = sample_freq(N_CELLS).map((x) => scale * x);
-
-// const fgrid = dft_transform(samples);
-// console.log(samples);
-
-// const density = Array.from(Array(N_CELLS), Array(N_CELLS).fill(0));
-
 describe("fourier test", async function () {
   it("sample frequencies should work as expected", () => {
     {
@@ -26,7 +18,7 @@ describe("fourier test", async function () {
   it("check potential", () => {
     const fgrid = fourier_grid();
     const density = Array.from(Array(N_CELLS), () =>
-      new Array(N_CELLS).fill(0)
+      new Array(N_CELLS).fill(0).map((_, i) => i)
     );
     console.log(density);
     const p = potential(density, fgrid, 2);
