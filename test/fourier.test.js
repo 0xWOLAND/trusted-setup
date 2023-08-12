@@ -1,4 +1,4 @@
-import { dft_transform, sample_freq } from "../fourier.js";
+import { fourier_grid, potential, sample_freq } from "../fourier.js";
 import { N_CELLS } from "../config.js";
 import { expect } from "chai";
 
@@ -22,5 +22,14 @@ describe("fourier test", async function () {
       const res = [0, 0.3333333333333333, -0.3333333333333333];
       samples.forEach((x, i) => expect(x).equals(res[i]));
     }
+  });
+  it("check potential", () => {
+    const fgrid = fourier_grid();
+    const density = Array.from(Array(N_CELLS), () =>
+      new Array(N_CELLS).fill(0)
+    );
+    console.log(density);
+    const p = potential(density, fgrid, 2);
+    console.log(p);
   });
 });

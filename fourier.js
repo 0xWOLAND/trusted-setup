@@ -1,5 +1,5 @@
 import FFT from "fft.js";
-import { N_CELLS } from "./config.js";
+import { N_CELLS, OMEGA_M0 } from "./config.js";
 
 // f = [0, 1, ...,   n/2-1,     -n/2, ..., -1] / (d*n)   if n is even
 // f = [0, 1, ..., (n-1)/2, -(n-1)/2, ..., -1] / (d*n)   if n is odd
@@ -40,6 +40,7 @@ export function potential(density, fourier_grid, t) {
 
 export function density_k(fgrid) {
   const dim = fgrid.length;
+  console.log(dim);
   const f = new FFT(dim);
 
   return fgrid.map((x) => {
@@ -55,6 +56,7 @@ export function potential_k(t, fourier_grid, density_grid) {
 
 export function potential_real(potential_k) {
   const dim = potential_k.length;
+  console.log(dim);
   const f = new FFT(dim);
 
   return potential_k.map((x) => {
