@@ -2,23 +2,23 @@ import { H0, N_CELLS, OMEGA_K0, OMEGA_LAMBDA0 } from "./config.js";
 import { f } from "./cosmology.js";
 import { potential } from "./fourier.js";
 
-function update(ρ, positions, velocities, fourier_grid, t, dt) {
+export function update(positions, velocities, fourier_grid, ρ, t, dt) {
   const g = potential(ρ, fourier_grid, t);
   const f_t = f(t + dt, [H0, OMEGA_LAMBDA0, OMEGA_K0]);
   return integrate(positions, velocities, g, f_t, t, dt);
 }
 
 // TODO compute in shader
-function integrate(positions, velocities, potential, f_t, t, dt) {
-  const centers = positions.map((x) => Math.floor(x));
+export function integrate(positions, velocities, potential, f_t, t, dt) {
+  const centers = positions.map((a) => a.map((x) => Math.floor(x)));
   const ρ = density_dist(positions, centers);
 
   return positions.map((_positions, i) =>
-    interpolate(_positions, velocities[i], potential, centers, ρ, f_t, t, dt)
+    interpolate(_positions, velocities[i], potential, centers, ρ, f_t, t, dt, i)
   );
 }
 
-function density_dist(positions, centers) {
+export function density_dist(positions, centers) {
   const len = positions[0].length;
 
   let ρ = Array.from(Array(4), () => new Array(len).fill(0));
@@ -39,19 +39,32 @@ function density_dist(positions, centers) {
 }
 
 // TODO compute this in shader
-function interpolate(positions, velocities, potential, centers, ρ, f_t, t, dt) {
+function interpolate(
+  positions,
+  velocities,
+  potential,
+  centers,
+  ρ,
+  f_t,
+  t,
+  dt,
+  direction
+) {
   // Central Difference Approximation
-  const cda_r = [...centers].map((x) => (x + 1) % N_CELLS);
-  const cda_l = [...centers].map((x) => x - 1);
-  const len = positions[0].length;
+  let cda_l = [...centers];
+  let cda_r = [...centers];
+  cda_l[direction] = cda_l[direction].map((x) => (x - 1 + N_CELLS) % N_CELLS);
+  cda_r[direction] = cda_r[direction].map((x) => (x + 1) % N_CELLS);
+
+  const len = positions.length;
 
   // x = 0
   // y = 1
   for (let i = 0; i < len; i++) {
     const x1 = cda_r[0][i];
-    const y1 = cda_r[0][i];
+    const y1 = cda_r[1][i];
     const x2 = cda_l[0][i];
-    const y2 = cda_l[0][i];
+    const y2 = cda_l[1][i];
 
     const [X1, Y1, X2, Y2] = [x1, y1, x2, y2].map((x) => (x + 1) % N_CELLS);
 
@@ -61,7 +74,7 @@ function interpolate(positions, velocities, potential, centers, ρ, f_t, t, dt) 
     const g_xy = -potential[X1][Y1] + potential[X2][Y2];
 
     const g_p = [g, g_x, g_y, g_xy]
-      .map((x, i) => (x * ρ[i]) / 2)
+      .map((x, j) => (x * ρ[j][i]) / 2)
       .reduce((acc, cur) => acc + cur, 0);
 
     velocities[i] += g_p * dt * f_t;

@@ -41,7 +41,7 @@ export function potential(density, fourier_grid, t) {
 export function density_k(density) {
   const dim = density.length;
   console.log(dim);
-  const f = new FFT(16);
+  const f = new FFT(dim);
 
   const ans = density.map((x) => {
     const out = f.createComplexArray();
@@ -60,7 +60,7 @@ export function potential_k(t, fourier_grid, density_grid) {
 export function potential_real(potential_k) {
   const dim = potential_k.length;
   console.log(dim);
-  const f = new FFT(16);
+  const f = new FFT(dim);
 
   const ans = potential_k.map((x) => {
     const out = f.createComplexArray();
