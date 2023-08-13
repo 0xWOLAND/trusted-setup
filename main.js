@@ -1,5 +1,6 @@
 import { createProgram } from "./utils.js";
 import { solve } from "./pm-solver.js";
+import { N_CELLS } from "./config.js";
 main();
 function main() {
   const vs = `#version 300 es
@@ -156,13 +157,13 @@ void main() {
 
     particleVBOs[i][POSITION_LOCATION] = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, particleVBOs[i][POSITION_LOCATION]);
-    gl.bufferData(gl.ARRAY_BUFFER, particlePositions, gl.STREAM_COPY);
+    gl.bufferData(gl.ARRAY_BUFFER, particlePositions, gl.DYNAMIC_DRAW);
     gl.vertexAttribPointer(POSITION_LOCATION, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(POSITION_LOCATION);
 
     particleVBOs[i][VELOCITY_LOCATION] = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, particleVBOs[i][VELOCITY_LOCATION]);
-    gl.bufferData(gl.ARRAY_BUFFER, particleVelocities, gl.STREAM_COPY);
+    gl.bufferData(gl.ARRAY_BUFFER, particleVelocities, gl.DYNAMIC_DRAW);
     gl.vertexAttribPointer(VELOCITY_LOCATION, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(VELOCITY_LOCATION);
 
@@ -250,7 +251,14 @@ void main() {
 
     const positions = new Float32Array(NUM_PARTICLES * 2);
     gl.getBufferSubData(gl.TRANSFORM_FEEDBACK_BUFFER, 0, positions);
-    solve(positions);
+    let [_positions, _velocities] = solve(positions.map((x) => x + 0.5)).map(
+      (a) => a.map((x) => x / N_CELLS - 0.5)
+    );
+    _positions = new Float32Array(NUM_PARTICLES * 2).map(
+      (_, i) => _positions[i % 2][Math.floor(i / 2)]
+    );
+    // gl.bindBuffer(gl.ARRAY_BUFFER, particleVBOs[][POSITION_LOCATION]);
+    // gl.bufferSubData(gl.ARRAY_BUFFER, _positions, gl.STREAM_COPY);
 
     gl.bindBufferBase(
       gl.TRANSFORM_FEEDBACK_BUFFER,

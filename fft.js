@@ -2,7 +2,6 @@
 
 export function FFT(size) {
   this.size = size | 0;
-  console.log("size: ", this.size, this.size & (this.size - 1));
   if (this.size <= 1 || (this.size & (this.size - 1)) !== 0)
     throw new Error("FFT size must be a power of two and bigger than 1");
 
