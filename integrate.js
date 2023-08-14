@@ -2,26 +2,44 @@ import { H0, N_CELLS, OMEGA_K0, OMEGA_LAMBDA0 } from "./config.js";
 import { f } from "./cosmology.js";
 import { potential } from "./fourier.js";
 
-export function update(positions, velocities, fourier_grid, ρ, t, dt) {
-  const g = potential(ρ, fourier_grid, t);
+export function update(positions, velocities, rho, fourier_grid, t, dt) {
+  const centers = positions.map((a) => a.map((x) => Math.floor(x)));
+  const w = weights(positions, centers);
+  const g = potential(rho, fourier_grid, t);
   const f_t = f(t + dt, [H0, OMEGA_LAMBDA0, OMEGA_K0]);
-  return integrate(positions, velocities, g, f_t, t, dt);
+  return integrate(positions, velocities, g, centers, w, f_t, t, dt);
 }
 
 // TODO compute in shader
-export function integrate(positions, velocities, potential, f_t, t, dt) {
-  const centers = positions.map((a) => a.map((x) => Math.floor(x)));
-  const ρ = density_dist(positions, centers);
-
+export function integrate(
+  positions,
+  velocities,
+  potential,
+  centers,
+  weights,
+  f_t,
+  t,
+  dt
+) {
   return positions.map((_positions, i) =>
-    interpolate(_positions, velocities[i], potential, centers, ρ, f_t, t, dt, i)
+    interpolate(
+      _positions,
+      velocities[i],
+      potential,
+      centers,
+      weights,
+      f_t,
+      t,
+      dt,
+      i
+    )
   );
 }
 
-export function density_dist(positions, centers) {
+export function weights(positions, centers) {
   const len = positions[0].length;
 
-  let ρ = Array.from(Array(4), () => new Array(len).fill(0));
+  let rho = Array.from(Array(4), () => new Array(len).fill(0));
 
   for (let i = 0; i < len; i++) {
     const dx = positions[0][i] - centers[0][i];
@@ -30,12 +48,12 @@ export function density_dist(positions, centers) {
     const tx = 1 - dx;
     const ty = 1 - dy;
 
-    ρ[0][i] = tx * ty;
-    ρ[1][i] = dx * ty;
-    ρ[2][i] = tx * dy;
-    ρ[3][i] = dx * dy;
+    rho[0][i] = tx * ty;
+    rho[1][i] = dx * ty;
+    rho[2][i] = tx * dy;
+    rho[3][i] = dx * dy;
   }
-  return ρ;
+  return rho;
 }
 
 // TODO compute this in shader
@@ -44,7 +62,7 @@ function interpolate(
   velocities,
   potential,
   centers,
-  ρ,
+  weights,
   f_t,
   t,
   dt,
@@ -74,13 +92,14 @@ function interpolate(
     const g_xy = -potential[X1][Y1] + potential[X2][Y2];
 
     const g_p = [g, g_x, g_y, g_xy]
-      .map((x, j) => (x * ρ[j][i]) / 2)
+      .map((x, j) => (x * weights[j][i]) / 2)
       .reduce((acc, cur) => acc + cur, 0);
 
     velocities[i] += g_p * dt * f_t;
     positions[i] =
       (positions[i] + (f_t * dt * velocities[i]) / Math.pow(t + dt, 2)) %
       N_CELLS;
+    positions[i] = (positions[i] + N_CELLS) % N_CELLS;
   }
   return [positions, velocities];
 }

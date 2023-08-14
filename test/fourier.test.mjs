@@ -2,6 +2,10 @@ import { fourier_grid, potential, sample_freq } from "../fourier.js";
 import { N_CELLS } from "../config.js";
 import { expect } from "chai";
 import { update } from "../integrate.js";
+import { solve } from "../pm-solver.js";
+import { density } from "../density.js";
+
+const NUM_PARTICLES = 10;
 
 describe("fourier test", async function () {
   it("sample frequencies should work as expected", () => {
@@ -17,21 +21,28 @@ describe("fourier test", async function () {
     }
   });
   it("check potential", () => {
-    const NUM_PARTICLES = 10;
     const fgrid = fourier_grid();
-    const density = Array.from(Array(N_CELLS), () =>
-      new Array(N_CELLS).fill(0).map((_, i) => i)
-    );
     const velocities = Array.from(Array(2), () =>
       new Array(NUM_PARTICLES).fill(0).map((x) => Math.random() * 5)
     );
     const positions = Array.from(Array(2), () =>
       new Array(NUM_PARTICLES).fill(0).map((x) => Math.random() * N_CELLS)
     );
+    const rho = density(positions);
     const t = 100;
     const dt = 10;
 
-    console.log(positions);
-    console.log(update(positions, velocities, fgrid, density, t, dt)[0]);
+    // console.log(update(positions, velocities, rho, fgrid, t, dt)[0]);
+  });
+  it("check update", () => {
+    const t = 1;
+    const dt = 0.01;
+    let positions = new Array(NUM_PARTICLES * 2)
+      .fill(0)
+      .map((_) => Math.random() - 0.5);
+    for (let i = 0; i < 10; i++) {
+      positions = solve(positions, t, dt)[0];
+      console.log(positions);
+    }
   });
 });

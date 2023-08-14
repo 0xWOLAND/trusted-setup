@@ -4,3 +4,4 @@ export const OMEGA_B0 = 0.04; // Baryon density
 export const OMEGA_K0 = 0.0; // Curvature density
 export const OMEGA_LAMBDA0 = 0.69; // Dark energy density
 export const H0 = 0.68; // Hubble
+export const MASS = 0.51;
